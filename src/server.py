@@ -3,7 +3,7 @@ import uuid
 
 from flask import Flask, redirect, request, render_template
 from config import API_KEY, REDIRECT_URI, SCOPES, SECRET
-# from helpers import verify_hmac
+from helpers import verify_hmac, valid_shop_name
 
 app = Flask(__name__)
 
@@ -28,21 +28,30 @@ def start_request():
 @app.route('/welcome')
 def get_token():
     global NONCE
+    # first chck NONCE
     state = request.args.get('state')
     if state != NONCE:
         return "Invalid 'state' received", 400
     NONCE = None
-
-    # hmac = request.args.get('hmac')
-    # verified = verify_hmac(request, hmac, SECRET)
-
-    # if not verified:
-    #     print("hamc verification error")
-
-    token = request.args.get('code')
-    print(token)
+    # then check hmac
+    req_args = request.args
+    hmac = req_args.pop('hmac')
+    verified = verify_hmac(req_args, hmac, SECRET)
+    if not verified:
+        print("hamc verification error")
+    # then check shop name is valid
     shop = request.args.get('shop')
-
+    if shop:
+        valid_name = valid_shop_name(shop)
+        if not valid_name:
+            return "Invalid shop name", 400
+    else:
+        return "No shop name", 400
+    # all checks having passed accept token
+    token = request.args.get('code')
+    # do something with token here
+    print(token)
+    # render welcome screen
     return render_template('welcome.html', shop=shop)
 
 

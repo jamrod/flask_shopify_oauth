@@ -12,7 +12,7 @@ NONCE = None
 
 @app.route('/')
 def test_route():
-    return "I'm Running!"
+    return "Flask Token Generator Running!"
 
 
 @app.route('/install_app')
@@ -28,7 +28,7 @@ def start_request():
 @app.route('/welcome')
 def get_token():
     global NONCE
-    # first chck NONCE
+    # first check NONCE
     state = request.args.get('state')
     if state != NONCE:
         return "Invalid 'state' received", 400
